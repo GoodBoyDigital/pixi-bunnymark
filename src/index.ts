@@ -2,7 +2,7 @@ async function init() {
     const params = new URLSearchParams(window.location.search);
 
     const version = params.get('version');
-    const totalBunnies = parseInt(params.get('count')) ?? 100000;
+    const totalBunnies = parseInt(params.get('count')) || 100000;
 
     if (version === 'v7') {
 
