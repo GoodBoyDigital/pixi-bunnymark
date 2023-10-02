@@ -25,7 +25,6 @@ npm-debug.log
 node_modules
 docs/
 bin/
-dist/js
 coverage/
 temp
 dev
