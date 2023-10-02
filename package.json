@@ -1,0 +1,31 @@
+{
+  "name": "PixiJS-Bunnymark",
+  "version": "1.0.0",
+  "description": "A little benchmark and test Pixi v8 renderer",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "npx esbuild src/index.ts --outfile=dist/js/index.js --bundle --loader:.wgsl=text --loader:.vert=text --loader:.frag=text --watch",
+    "build": "npx esbuild src/index.ts --outdir=dist/js --bundle --loader:.wgsl=text --loader:.vert=text --loader:.frag=text --minify --tree-shaking=true --metafile=meta.json --format=esm",
+    "serve": "npx http-server ./dist"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GoodBoyDigital/webGPU-test.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/GoodBoyDigital/webGPU-test/issues"
+  },
+  "homepage": "https://github.com/GoodBoyDigital/webGPU-test#readme",
+  "dependencies": {
+    "pixi-v7": "npm:pixi.js@^7.3.1",
+    "pixi-v8": "npm:pixi.js@^8.0.0-beta.3",
+  },
+  "devDependencies": {
+    "esbuild": "^0.15.13",
+    "http-server": "^14.1.1",
+    "ts": "^0.2.2"
+  }
+}

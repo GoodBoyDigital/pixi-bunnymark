@@ -1,0 +1,60 @@
+</html>
+<!DOCTYPE html>
+
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui" />
+    <meta name="description" content="">
+
+    <title></title>
+
+    <link rel="icon" href="assets/favicons/favicon.png" type="image/png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="images/touch-icon-114x114.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="images/touch-icon-72x72.png">
+    <link rel="apple-touch-icon-precomposed" sizes="57x57" href="images/touch-icon-57x57.png">
+    <link rel="apple-touch-icon-precomposed" href="images/touch-icon-57x57.png">
+
+    <style>
+        html {
+            margin: 0;
+            background: black;
+            width: 100%;
+            height: 100%;
+            min-width: 100%;
+            min-height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            margin: 0;
+            background: black;
+            width: 100%;
+            height: 100%;
+            min-width: 100%;
+            min-height: 100%;
+            overflow: hidden;
+        }
+    </style>
+
+
+
+</head>
+
+<body>
+    <script> javascript: (function () {
+            var script = document.createElement('script'); script.onload = function () {
+                var stats = new
+                    Stats(); document.body.appendChild(stats.dom); requestAnimationFrame(function
+                        loop() { stats.update(); requestAnimationFrame(loop) });
+            }; script.src = 'https://mrdoob.github.io/stats.js/build/stats.min.js'; document.head.appendChild(script);
+        })()
+    </script>
+    <div id="game-holder"></div>
+    <script type="module" src="./js/index.js"></script>
+</body>
+
+</html>

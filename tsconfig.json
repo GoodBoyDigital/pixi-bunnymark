@@ -1,0 +1,36 @@
+{
+    "compilerOptions": {
+        "noImplicitAny": true,
+        "noUnusedLocals": true,
+        "noEmitOnError": false,
+        "strict": false,
+        "sourceMap": true,
+        "target": "es2020",
+        "moduleResolution": "node",
+        "resolveJsonModule": true,
+        "allowSyntheticDefaultImports": true,
+        "lib": [
+            "es2019",
+            "dom"
+        ],
+        "skipLibCheck": true,
+        "noImplicitOverride": true
+    },
+    "include": [
+        "src/index.ts"
+    ],
+    "exclude": [
+        "**/node_modules",
+        "**/.*/"
+    ],
+    "ts-node": {
+        "files": false,
+        "compilerOptions": {
+            "esModuleInterop": true,
+            "target": "esnext",
+            "allowSyntheticDefaultImports": true,
+            "module": "es2020"
+        },
+        "transpileOnly": true
+    }
+}
