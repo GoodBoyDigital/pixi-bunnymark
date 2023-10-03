@@ -9,13 +9,13 @@ EventSystem.defaultEventFeatures.globalMove = false;
 
 const bunnyPool: BunnyV8[] = [];
 
-export async function bunnyMarkV8({ totalBunnies }: { totalBunnies: number }) {
+export async function bunnyMarkV8({ totalBunnies, preference }: { totalBunnies: number, preference: 'webgl' | 'webgpu' }) {
 
     const renderer = await autoDetectRenderer({
-        // preference: 'webgl',
+        preference,
         clearBeforeRender: true,
         backgroundAlpha: 1,
-        backgroundColor: 0x00FFFF,
+        backgroundColor: 0xFFFFFF,
         width: 800,
         height: 600,
         resolution: 1,

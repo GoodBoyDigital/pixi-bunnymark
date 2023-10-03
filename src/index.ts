@@ -1,8 +1,9 @@
 async function init() {
     const params = new URLSearchParams(window.location.search);
 
-    const version = params.get('version');
+    const version = params.get('version') || 'v8';
     const totalBunnies = parseInt(params.get('count')) || 100000;
+    const rendererType = params.get('renderer') || 'webgpu';
 
     if (version === 'v7') {
 
@@ -14,7 +15,7 @@ async function init() {
 
         const { bunnyMarkV8 } = await import('./bunny-mark/v8/bunny-mark-v8');
 
-        bunnyMarkV8({ totalBunnies });
+        bunnyMarkV8({ totalBunnies, rendererType });
     }
 }
 

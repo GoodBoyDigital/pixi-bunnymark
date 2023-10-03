@@ -14204,7 +14204,7 @@
       ]
     },
     "src/bunny-mark/v8/bunny-mark-v8.ts": {
-      "bytes": 2342,
+      "bytes": 2374,
       "imports": [
         {
           "path": "node_modules/pixi-v8/lib/index.mjs",
@@ -14217,7 +14217,7 @@
       ]
     },
     "src/index.ts": {
-      "bytes": 499,
+      "bytes": 582,
       "imports": [
         {
           "path": "src/bunny-mark/v7/bunny-mark-v7.ts",
@@ -16514,13 +16514,13 @@
           "bytesInOutput": 724
         },
         "src/bunny-mark/v8/bunny-mark-v8.ts": {
-          "bytesInOutput": 1221
+          "bytesInOutput": 1250
         },
         "src/index.ts": {
-          "bytesInOutput": 311
+          "bytesInOutput": 362
         }
       },
-      "bytes": 919845
+      "bytes": 919925
     }
   }
 }
