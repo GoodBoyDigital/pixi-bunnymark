@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "npx esbuild src/index.ts --outfile=dist/js/index.js --bundle --loader:.wgsl=text --loader:.vert=text --loader:.frag=text --watch",
-    "build": "npx esbuild src/index.ts --outdir=dist/js --bundle --loader:.wgsl=text --loader:.vert=text --loader:.frag=text --minify --tree-shaking=true --metafile=meta.json --format=esm",
+    "build": "npx esbuild src/index.ts --outdir=dist/js --bundle --splitting --loader:.wgsl=text --loader:.vert=text --loader:.frag=text --minify --tree-shaking=true --metafile=meta.json --format=esm",
     "serve": "npx http-server ./dist"
   },
   "repository": {
