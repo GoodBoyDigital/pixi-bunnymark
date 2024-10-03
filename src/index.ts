@@ -2,6 +2,7 @@ async function init() {
     const params = new URLSearchParams(window.location.search);
 
     const version = params.get('version') || 'v8';
+    const useParticles = params.get('asParticles') || false;
     const totalBunnies = parseInt(params.get('count')) || 100000;
     const preference = params.get('renderer') || 'webgpu';
 
@@ -11,8 +12,13 @@ async function init() {
 
         bunnyMarkV7({ totalBunnies });
     }
-    else {
+    else if (useParticles) {
 
+        const { bunnyMarkParticlesV8 } = await import('./bunny-mark/v8/bunny-mark-particle-v8');
+
+        bunnyMarkParticlesV8({ totalBunnies, preference });
+    }
+    else {
         const { bunnyMarkV8 } = await import('./bunny-mark/v8/bunny-mark-v8');
 
         bunnyMarkV8({ totalBunnies, preference });

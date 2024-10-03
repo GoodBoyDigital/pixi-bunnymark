@@ -6992,10 +6992,10 @@ void main(void){
           return defaultFragment2;
         }
         setShaderGenerator({
-          vertex: vertex7 = _BatchRenderer2.defaultVertexSrc,
-          fragment: fragment10 = _BatchRenderer2.defaultFragmentTemplate
+          vertex: vertex8 = _BatchRenderer2.defaultVertexSrc,
+          fragment: fragment11 = _BatchRenderer2.defaultFragmentTemplate
         } = {}) {
-          this.shaderGenerator = new BatchShaderGenerator(vertex7, fragment10);
+          this.shaderGenerator = new BatchShaderGenerator(vertex8, fragment11);
         }
         contextChange() {
           const gl = this.renderer.gl;
@@ -26069,6 +26069,7 @@ Deprecated since v${version}`);
           const event = this.eventPool.get(constructor).pop() || new constructor(this);
           event.eventPhase = event.NONE;
           event.currentTarget = null;
+          event.defaultPrevented = false;
           event.path = null;
           event.target = null;
           return event;
@@ -30329,29 +30330,24 @@ Deprecated since v${version}`);
       init_ensureIsBuffer();
       init_getGeometryBounds();
       Geometry2 = class extends eventemitter3_default {
-        constructor(options) {
-          const { attributes, indexBuffer, topology } = options;
+        constructor(options = {}) {
           super();
           this.uid = uid2("geometry");
           this._layoutKey = 0;
           this.instanceCount = 1;
           this._bounds = new Bounds2();
           this._boundsDirty = true;
-          this.attributes = attributes;
+          const { attributes, indexBuffer, topology } = options;
           this.buffers = [];
-          this.instanceCount = options.instanceCount || 1;
-          for (const i2 in attributes) {
-            const attribute = attributes[i2] = ensureIsAttribute(attributes[i2]);
-            const bufferIndex = this.buffers.indexOf(attribute.buffer);
-            if (bufferIndex === -1) {
-              this.buffers.push(attribute.buffer);
-              attribute.buffer.on("update", this.onBufferUpdate, this);
-              attribute.buffer.on("change", this.onBufferUpdate, this);
+          this.attributes = {};
+          if (attributes) {
+            for (const i2 in attributes) {
+              this.addAttribute(i2, attributes[i2]);
             }
           }
+          this.instanceCount = options.instanceCount || 1;
           if (indexBuffer) {
-            this.indexBuffer = ensureIsBuffer(indexBuffer, true);
-            this.buffers.push(this.indexBuffer);
+            this.addIndex(indexBuffer);
           }
           this.topology = topology || "triangle-list";
         }
@@ -30375,6 +30371,20 @@ Deprecated since v${version}`);
             return buffer.data.length / (attribute.stride / 4 || attribute.size);
           }
           return 0;
+        }
+        addAttribute(name, attributeOption) {
+          const attribute = ensureIsAttribute(attributeOption);
+          const bufferIndex = this.buffers.indexOf(attribute.buffer);
+          if (bufferIndex === -1) {
+            this.buffers.push(attribute.buffer);
+            attribute.buffer.on("update", this.onBufferUpdate, this);
+            attribute.buffer.on("change", this.onBufferUpdate, this);
+          }
+          this.attributes[name] = attribute;
+        }
+        addIndex(indexBuffer) {
+          this.indexBuffer = ensureIsBuffer(indexBuffer, true);
+          this.buffers.push(this.indexBuffer);
         }
         get bounds() {
           if (!this._boundsDirty)
@@ -30637,15 +30647,15 @@ ${src}`;
             addProgramDefines: isES300,
             insertVersion: isES300
           };
-          let fragment10 = options.fragment;
-          let vertex7 = options.vertex;
+          let fragment11 = options.fragment;
+          let vertex8 = options.vertex;
           Object.keys(processes).forEach((processKey) => {
             const processOptions = preprocessorOptions[processKey];
-            fragment10 = processes[processKey](fragment10, processOptions, true);
-            vertex7 = processes[processKey](vertex7, processOptions, false);
+            fragment11 = processes[processKey](fragment11, processOptions, true);
+            vertex8 = processes[processKey](vertex8, processOptions, false);
           });
-          this.fragment = fragment10;
-          this.vertex = vertex7;
+          this.fragment = fragment11;
+          this.vertex = vertex8;
           this._key = createIdFromString(`${this.vertex}:${this.fragment}`, "gl-program");
         }
         destroy() {
@@ -30769,7 +30779,7 @@ ${src}`;
   });
 
   // node_modules/pixi-v8/lib/rendering/renderers/gpu/shader/utils/extractStructAndGroups.mjs
-  function extractStructAndGroups(wgsl) {
+  function extractStructAndGroups(wgsl2) {
     const linePattern = /(^|[^/])@(group|binding)\(\d+\)[^;]+;/g;
     const groupPattern = /@group\((\d+)\)/;
     const bindingPattern = /@binding\((\d+)\)/;
@@ -30778,7 +30788,7 @@ ${src}`;
     const structPattern = /struct\s+(\w+)\s*{([^}]+)}/g;
     const structMemberPattern = /(\w+)\s*:\s*([\w\<\>]+)/g;
     const structName = /struct\s+(\w+)/;
-    const groups = wgsl.match(linePattern)?.map((item) => ({
+    const groups = wgsl2.match(linePattern)?.map((item) => ({
       group: parseInt(item.match(groupPattern)[1], 10),
       binding: parseInt(item.match(bindingPattern)[1], 10),
       name: item.match(namePattern)[2],
@@ -30791,7 +30801,7 @@ ${src}`;
         structs: []
       };
     }
-    const structs = wgsl.match(structPattern)?.map((struct) => {
+    const structs = wgsl2.match(structPattern)?.map((struct) => {
       const name = struct.match(structName)[1];
       const members = struct.match(structMemberPattern).reduce((acc, member) => {
         const [name2, type] = member.split(":");
@@ -30932,16 +30942,16 @@ ${src}`;
         constructor(options) {
           this._layoutKey = 0;
           this._attributeLocationsKey = 0;
-          const { fragment: fragment10, vertex: vertex7, layout, gpuLayout, name } = options;
+          const { fragment: fragment11, vertex: vertex8, layout, gpuLayout, name } = options;
           this.name = name;
-          this.fragment = fragment10;
-          this.vertex = vertex7;
-          if (fragment10.source === vertex7.source) {
-            const structsAndGroups = extractStructAndGroups(fragment10.source);
+          this.fragment = fragment11;
+          this.vertex = vertex8;
+          if (fragment11.source === vertex8.source) {
+            const structsAndGroups = extractStructAndGroups(fragment11.source);
             this.structsAndGroups = structsAndGroups;
           } else {
-            const vertexStructsAndGroups = extractStructAndGroups(vertex7.source);
-            const fragmentStructsAndGroups = extractStructAndGroups(fragment10.source);
+            const vertexStructsAndGroups = extractStructAndGroups(vertex8.source);
+            const fragmentStructsAndGroups = extractStructAndGroups(fragment11.source);
             this.structsAndGroups = removeStructAndGroupDuplicates(vertexStructsAndGroups, fragmentStructsAndGroups);
           }
           this.layout = layout ?? generateLayoutHash(this.structsAndGroups);
@@ -30951,8 +30961,8 @@ ${src}`;
           this._generateProgramKey();
         }
         _generateProgramKey() {
-          const { vertex: vertex7, fragment: fragment10 } = this;
-          const bigKey = vertex7.source + fragment10.source + vertex7.entryPoint + fragment10.entryPoint;
+          const { vertex: vertex8, fragment: fragment11 } = this;
+          const bigKey = vertex8.source + fragment11.source + vertex8.entryPoint + fragment11.entryPoint;
           this._layoutKey = createIdFromString(bigKey, "program");
         }
         get attributeData() {
@@ -31032,9 +31042,9 @@ ${src}`;
   function compileInputs(fragments, template, sort = false) {
     const results = [];
     extractInputs(template, results);
-    fragments.forEach((fragment10) => {
-      if (fragment10.header) {
-        extractInputs(fragment10.header, results);
+    fragments.forEach((fragment11) => {
+      if (fragment11.header) {
+        extractInputs(fragment11.header, results);
       }
     });
     const mainInput = results;
@@ -31074,9 +31084,9 @@ ${finalString}
   function compileOutputs(fragments, template) {
     const results = [];
     extractOutputs(template, results);
-    fragments.forEach((fragment10) => {
-      if (fragment10.header) {
-        extractOutputs(fragment10.header, results);
+    fragments.forEach((fragment11) => {
+      if (fragment11.header) {
+        extractOutputs(fragment11.header, results);
       }
     });
     let index = 0;
@@ -31137,8 +31147,8 @@ ${parts.join("\n")}
     const cacheId = generateCacheId(template, bits);
     if (cacheMap[cacheId])
       return cacheMap[cacheId];
-    const { vertex: vertex7, fragment: fragment10 } = compileInputsAndOutputs(template, bits);
-    cacheMap[cacheId] = compileBits(vertex7, fragment10, bits);
+    const { vertex: vertex8, fragment: fragment11 } = compileInputsAndOutputs(template, bits);
+    cacheMap[cacheId] = compileBits(vertex8, fragment11, bits);
     return cacheMap[cacheId];
   }
   function compileHighShaderGl({
@@ -31170,16 +31180,16 @@ ${parts.join("\n")}
       return bitCacheMap.get(highFragment);
     }).sort((a2, b2) => a2 - b2).join("-") + template.vertex + template.fragment;
   }
-  function compileBits(vertex7, fragment10, bits) {
-    const vertexParts = compileHooks(vertex7);
-    const fragmentParts = compileHooks(fragment10);
+  function compileBits(vertex8, fragment11, bits) {
+    const vertexParts = compileHooks(vertex8);
+    const fragmentParts = compileHooks(fragment11);
     bits.forEach((shaderBit) => {
       addBits(shaderBit.vertex, vertexParts, shaderBit.name);
       addBits(shaderBit.fragment, fragmentParts, shaderBit.name);
     });
     return {
-      vertex: injectBits(vertex7, vertexParts),
-      fragment: injectBits(fragment10, fragmentParts)
+      vertex: injectBits(vertex8, vertexParts),
+      fragment: injectBits(fragment11, fragmentParts)
     };
   }
   var cacheMap, bitCacheMap, CACHE_UID;
@@ -33732,6 +33742,473 @@ ${parts.join("\n")}
       init_Extensions();
       init_MeshPipe();
       extensions3.add(MeshPipe);
+    }
+  });
+
+  // node_modules/pixi-v8/lib/scene/particle-container/gl/GlParticleContainerAdaptor.mjs
+  var GlParticleContainerAdaptor;
+  var init_GlParticleContainerAdaptor = __esm({
+    "node_modules/pixi-v8/lib/scene/particle-container/gl/GlParticleContainerAdaptor.mjs"() {
+      "use strict";
+      GlParticleContainerAdaptor = class {
+        execute(particleContainerPop, container) {
+          const state = particleContainerPop.state;
+          const renderer = particleContainerPop.renderer;
+          const shader = container.shader || particleContainerPop.defaultShader;
+          shader.resources.uTexture = container.texture._source;
+          shader.resources.uniforms = particleContainerPop.localUniforms;
+          const gl = renderer.gl;
+          const buffer = particleContainerPop.getBuffers(container);
+          renderer.shader.bind(shader);
+          renderer.state.set(state);
+          renderer.geometry.bind(buffer.geometry, shader.glProgram);
+          const byteSize = buffer.geometry.indexBuffer.data.BYTES_PER_ELEMENT;
+          const glType = byteSize === 2 ? gl.UNSIGNED_SHORT : gl.UNSIGNED_INT;
+          gl.drawElements(gl.TRIANGLES, container.particleChildren.length * 6, glType, 0);
+        }
+      };
+    }
+  });
+
+  // node_modules/pixi-v8/lib/scene/particle-container/shared/utils/createIndicesForQuads.mjs
+  function createIndicesForQuads2(size, outBuffer = null) {
+    const totalIndices = size * 6;
+    if (totalIndices > 65535) {
+      outBuffer = outBuffer || new Uint32Array(totalIndices);
+    } else {
+      outBuffer = outBuffer || new Uint16Array(totalIndices);
+    }
+    if (outBuffer.length !== totalIndices) {
+      throw new Error(`Out buffer length is incorrect, got ${outBuffer.length} and expected ${totalIndices}`);
+    }
+    for (let i2 = 0, j2 = 0; i2 < totalIndices; i2 += 6, j2 += 4) {
+      outBuffer[i2 + 0] = j2 + 0;
+      outBuffer[i2 + 1] = j2 + 1;
+      outBuffer[i2 + 2] = j2 + 2;
+      outBuffer[i2 + 3] = j2 + 0;
+      outBuffer[i2 + 4] = j2 + 2;
+      outBuffer[i2 + 5] = j2 + 3;
+    }
+    return outBuffer;
+  }
+  var init_createIndicesForQuads2 = __esm({
+    "node_modules/pixi-v8/lib/scene/particle-container/shared/utils/createIndicesForQuads.mjs"() {
+      "use strict";
+    }
+  });
+
+  // node_modules/pixi-v8/lib/scene/particle-container/shared/utils/generateParticleUpdateFunction.mjs
+  function generateParticleUpdateFunction(properties) {
+    return {
+      dynamicUpdate: generateUpdateFunction(properties, true),
+      staticUpdate: generateUpdateFunction(properties, false)
+    };
+  }
+  function generateUpdateFunction(properties, dynamic) {
+    const funcFragments = [];
+    funcFragments.push(`
+      
+        var index = 0;
+
+        for (let i = 0; i < ps.length; ++i)
+        {
+            const p = ps[i];
+
+            `);
+    let offset = 0;
+    for (const i2 in properties) {
+      const property = properties[i2];
+      if (dynamic !== property.dynamic)
+        continue;
+      funcFragments.push(`offset = index + ${offset}`);
+      funcFragments.push(property.code);
+      const attributeInfo = getAttributeInfoFromFormat(property.format);
+      offset += attributeInfo.stride / 4;
+    }
+    funcFragments.push(`
+            index += stride * 4;
+        }
+    `);
+    funcFragments.unshift(`
+        var stride = ${offset};
+    `);
+    const functionSource = funcFragments.join("\n");
+    return new Function("ps", "f32v", "u32v", functionSource);
+  }
+  var init_generateParticleUpdateFunction = __esm({
+    "node_modules/pixi-v8/lib/scene/particle-container/shared/utils/generateParticleUpdateFunction.mjs"() {
+      init_getAttributeInfoFromFormat();
+    }
+  });
+
+  // node_modules/pixi-v8/lib/scene/particle-container/shared/ParticleBuffer.mjs
+  function getParticleSyncKey(properties) {
+    const keyGen = [];
+    for (const key in properties) {
+      const property = properties[key];
+      keyGen.push(key, property.code, property.dynamic ? "d" : "s");
+    }
+    return keyGen.join("_");
+  }
+  var ParticleBuffer2;
+  var init_ParticleBuffer2 = __esm({
+    "node_modules/pixi-v8/lib/scene/particle-container/shared/ParticleBuffer.mjs"() {
+      init_Buffer2();
+      init_const10();
+      init_Geometry2();
+      init_getAttributeInfoFromFormat();
+      init_ViewableBuffer2();
+      init_createIndicesForQuads2();
+      init_generateParticleUpdateFunction();
+      ParticleBuffer2 = class {
+        constructor(options) {
+          this._size = 0;
+          this._generateParticleUpdateCache = {};
+          const size = this._size = options.size ?? 1e3;
+          const properties = options.properties;
+          let staticVertexSize = 0;
+          let dynamicVertexSize = 0;
+          for (const i2 in properties) {
+            const property = properties[i2];
+            const attributeInfo = getAttributeInfoFromFormat(property.format);
+            if (property.dynamic) {
+              dynamicVertexSize += attributeInfo.stride;
+            } else {
+              staticVertexSize += attributeInfo.stride;
+            }
+          }
+          this._dynamicStride = dynamicVertexSize / 4;
+          this._staticStride = staticVertexSize / 4;
+          this.staticAttributeBuffer = new ViewableBuffer2(size * 4 * staticVertexSize);
+          this.dynamicAttributeBuffer = new ViewableBuffer2(size * 4 * dynamicVertexSize);
+          this.indexBuffer = createIndicesForQuads2(size);
+          const geometry = new Geometry2();
+          let dynamicOffset = 0;
+          let staticOffset = 0;
+          this._staticBuffer = new Buffer3({
+            data: new Float32Array(1),
+            label: "static-particle-buffer",
+            shrinkToFit: false,
+            usage: BufferUsage.VERTEX | BufferUsage.COPY_DST
+          });
+          this._dynamicBuffer = new Buffer3({
+            data: new Float32Array(1),
+            label: "dynamic-particle-buffer",
+            shrinkToFit: false,
+            usage: BufferUsage.VERTEX | BufferUsage.COPY_DST
+          });
+          for (const i2 in properties) {
+            const property = properties[i2];
+            const attributeInfo = getAttributeInfoFromFormat(property.format);
+            if (property.dynamic) {
+              geometry.addAttribute(property.attributeName, {
+                buffer: this._dynamicBuffer,
+                stride: this._dynamicStride * 4,
+                offset: dynamicOffset * 4,
+                format: property.format
+              });
+              dynamicOffset += attributeInfo.size;
+            } else {
+              geometry.addAttribute(property.attributeName, {
+                buffer: this._staticBuffer,
+                stride: this._staticStride * 4,
+                offset: staticOffset * 4,
+                format: property.format
+              });
+              staticOffset += attributeInfo.size;
+            }
+          }
+          geometry.addIndex(this.indexBuffer);
+          const uploadFunction = this.getParticleUpdate(properties);
+          this._dynamicUpload = uploadFunction.dynamicUpdate;
+          this._staticUpload = uploadFunction.staticUpdate;
+          this.geometry = geometry;
+        }
+        getParticleUpdate(properties) {
+          const key = getParticleSyncKey(properties);
+          if (this._generateParticleUpdateCache[key]) {
+            return this._generateParticleUpdateCache[key];
+          }
+          this._generateParticleUpdateCache[key] = this.generateParticleUpdate(properties);
+          return this._generateParticleUpdateCache[key];
+        }
+        generateParticleUpdate(properties) {
+          return generateParticleUpdateFunction(properties);
+        }
+        update(particles, uploadStatic) {
+          if (particles.length > this._size) {
+            uploadStatic = true;
+            this._size = Math.max(particles.length, this._size * 1.5);
+            this.staticAttributeBuffer = new ViewableBuffer2(this._size * this._staticStride * 4 * 4);
+            this.dynamicAttributeBuffer = new ViewableBuffer2(this._size * this._dynamicStride * 4 * 4);
+            this.indexBuffer = createIndicesForQuads2(this._size);
+            this.geometry.indexBuffer.setDataWithSize(
+              this.indexBuffer,
+              this.indexBuffer.byteLength,
+              true
+            );
+          }
+          const dynamicAttributeBuffer = this.dynamicAttributeBuffer;
+          this._dynamicUpload(particles, dynamicAttributeBuffer.float32View, dynamicAttributeBuffer.uint32View);
+          this._dynamicBuffer.setDataWithSize(
+            this.dynamicAttributeBuffer.float32View,
+            particles.length * this._dynamicStride * 4,
+            true
+          );
+          if (uploadStatic) {
+            const staticAttributeBuffer = this.staticAttributeBuffer;
+            this._staticUpload(particles, staticAttributeBuffer.float32View, staticAttributeBuffer.uint32View);
+            this._staticBuffer.setDataWithSize(
+              staticAttributeBuffer.float32View,
+              particles.length * this._staticStride * 4,
+              true
+            );
+          }
+        }
+        destroy() {
+          this._staticBuffer.destroy();
+          this._dynamicBuffer.destroy();
+          this.geometry.destroy();
+        }
+      };
+    }
+  });
+
+  // node_modules/pixi-v8/lib/scene/particle-container/shared/shader/particles.frag.mjs
+  var fragment9;
+  var init_particles_frag2 = __esm({
+    "node_modules/pixi-v8/lib/scene/particle-container/shared/shader/particles.frag.mjs"() {
+      fragment9 = "varying vec2 vUV;\nvarying vec4 vColor;\n\nuniform sampler2D uTexture;\n\nvoid main(void){\n    vec4 color = texture2D(uTexture, vUV) * vColor;\n    gl_FragColor = color;\n}";
+    }
+  });
+
+  // node_modules/pixi-v8/lib/scene/particle-container/shared/shader/particles.vert.mjs
+  var vertex6;
+  var init_particles_vert2 = __esm({
+    "node_modules/pixi-v8/lib/scene/particle-container/shared/shader/particles.vert.mjs"() {
+      vertex6 = "attribute vec2 aVertex;\nattribute vec2 aUV;\nattribute vec4 aColor;\n\nattribute vec2 aPosition;\nattribute float aRotation;\n\nuniform mat3 uTranslationMatrix;\nuniform float uRound;\nuniform vec2 uResolution;\nuniform vec4 uColor;\n\nvarying vec2 vUV;\nvarying vec4 vColor;\n\nvec2 roundPixels(vec2 position, vec2 targetSize)\n{       \n    return (floor(((position * 0.5 + 0.5) * targetSize) + 0.5) / targetSize) * 2.0 - 1.0;\n}\n\nvoid main(void){\n    float cosRotation = cos(aRotation);\n    float sinRotation = sin(aRotation);\n    float x = aVertex.x * cosRotation - aVertex.y * sinRotation;\n    float y = aVertex.x * sinRotation + aVertex.y * cosRotation;\n\n    vec2 v = vec2(x, y);\n    v = v + aPosition;\n\n    gl_Position = vec4((uTranslationMatrix * vec3(v, 1.0)).xy, 0.0, 1.0);\n\n    if(uRound == 1.0)\n    {\n        gl_Position.xy = roundPixels(gl_Position.xy, uResolution);\n    }\n\n    vUV = aUV;\n    vColor = aColor * uColor;\n}\n";
+    }
+  });
+
+  // node_modules/pixi-v8/lib/scene/particle-container/shared/shader/particles.wgsl.mjs
+  var wgsl;
+  var init_particles_wgsl = __esm({
+    "node_modules/pixi-v8/lib/scene/particle-container/shared/shader/particles.wgsl.mjs"() {
+      wgsl = "\nstruct ParticleUniforms {\n  uProjectionMatrix:mat3x3<f32>,\n  uResolution:vec2<f32>,\n  uRoundPixels:f32,\n};\n\n@group(0) @binding(0) var<uniform> uniforms: ParticleUniforms;\n\n@group(1) @binding(0) var uTexture: texture_2d<f32>;\n@group(1) @binding(1) var uSampler : sampler;\n\nstruct VSOutput {\n    @builtin(position) position: vec4<f32>,\n    @location(0) uv : vec2<f32>,\n    @location(1) color : vec4<f32>,\n  };\n@vertex\nfn mainVertex(\n  @location(0) aVertex: vec2<f32>,\n  @location(1) aPosition: vec2<f32>,\n  @location(2) aUV: vec2<f32>,\n  @location(3) aColor: vec4<f32>,\n  @location(4) aRotation: f32,\n) -> VSOutput {\n  \n   let v = vec2(\n       aVertex.x * cos(aRotation) - aVertex.y * sin(aRotation),\n       aVertex.x * sin(aRotation) + aVertex.y * cos(aRotation)\n   ) + aPosition;\n\n   let position = vec4((uniforms.uProjectionMatrix * vec3(v, 1.0)).xy, 0.0, 1.0);\n\n  return VSOutput(\n   position,\n   aUV,\n   aColor,\n  );\n}\n\n@fragment\nfn mainFragment(\n  @location(0) uv: vec2<f32>,\n  @location(1) color: vec4<f32>,\n  @builtin(position) position: vec4<f32>,\n) -> @location(0) vec4<f32> {\n\n    var sample = textureSample(uTexture, uSampler, uv) * color;\n   \n    return sample;\n}";
+    }
+  });
+
+  // node_modules/pixi-v8/lib/scene/particle-container/shared/shader/ParticleShader.mjs
+  var ParticleShader;
+  var init_ParticleShader = __esm({
+    "node_modules/pixi-v8/lib/scene/particle-container/shared/shader/ParticleShader.mjs"() {
+      init_Color2();
+      init_Matrix2();
+      init_GlProgram();
+      init_GpuProgram();
+      init_Shader2();
+      init_Texture2();
+      init_TextureStyle();
+      init_particles_frag2();
+      init_particles_vert2();
+      init_particles_wgsl();
+      ParticleShader = class extends Shader2 {
+        constructor() {
+          const glProgram3 = GlProgram.from({
+            vertex: vertex6,
+            fragment: fragment9
+          });
+          const gpuProgram3 = GpuProgram.from({
+            fragment: {
+              source: wgsl,
+              entryPoint: "mainFragment"
+            },
+            vertex: {
+              source: wgsl,
+              entryPoint: "mainVertex"
+            }
+          });
+          super({
+            glProgram: glProgram3,
+            gpuProgram: gpuProgram3,
+            resources: {
+              uTexture: Texture2.WHITE.source,
+              uSampler: new TextureStyle({}),
+              uniforms: {
+                uTranslationMatrix: { value: new Matrix2(), type: "mat3x3<f32>" },
+                uColor: { value: new Color2(16777215), type: "vec4<f32>" },
+                uRound: { value: 1, type: "f32" },
+                uResolution: { value: [0, 0], type: "vec2<f32>" }
+              }
+            }
+          });
+        }
+      };
+    }
+  });
+
+  // node_modules/pixi-v8/lib/scene/particle-container/shared/ParticleContainerPipe.mjs
+  var ParticleContainerPipe;
+  var init_ParticleContainerPipe = __esm({
+    "node_modules/pixi-v8/lib/scene/particle-container/shared/ParticleContainerPipe.mjs"() {
+      init_Matrix2();
+      init_UniformGroup2();
+      init_getAdjustedBlendModeBlend();
+      init_State2();
+      init_colorToUniform();
+      init_ParticleBuffer2();
+      init_ParticleShader();
+      ParticleContainerPipe = class {
+        constructor(renderer, adaptor) {
+          this.state = State2.for2d();
+          this._gpuBufferHash = /* @__PURE__ */ Object.create(null);
+          this._destroyRenderableBound = this.destroyRenderable.bind(this);
+          this.localUniforms = new UniformGroup2({
+            uTranslationMatrix: { value: new Matrix2(), type: "mat3x3<f32>" },
+            uColor: { value: new Float32Array(4), type: "vec4<f32>" },
+            uRound: { value: 1, type: "f32" },
+            uResolution: { value: [0, 0], type: "vec2<f32>" }
+          });
+          this.renderer = renderer;
+          this.adaptor = adaptor;
+          this.defaultShader = new ParticleShader();
+          this.state = State2.for2d();
+        }
+        validateRenderable(_renderable) {
+          return false;
+        }
+        addRenderable(renderable, instructionSet) {
+          this.renderer.renderPipes.batch.break(instructionSet);
+          instructionSet.add(renderable);
+        }
+        getBuffers(renderable) {
+          return this._gpuBufferHash[renderable.uid] || this._initBuffer(renderable);
+        }
+        _initBuffer(renderable) {
+          this._gpuBufferHash[renderable.uid] = new ParticleBuffer2({
+            size: renderable.particleChildren.length,
+            properties: renderable._properties
+          });
+          renderable.on("destroyed", this._destroyRenderableBound);
+          return this._gpuBufferHash[renderable.uid];
+        }
+        updateRenderable(_renderable) {
+        }
+        destroyRenderable(renderable) {
+          const buffer = this._gpuBufferHash[renderable.uid];
+          buffer.destroy();
+          this._gpuBufferHash[renderable.uid] = null;
+          renderable.off("destroyed", this._destroyRenderableBound);
+        }
+        execute(container) {
+          const children = container.particleChildren;
+          if (children.length === 0) {
+            return;
+          }
+          const renderer = this.renderer;
+          const buffer = this.getBuffers(container);
+          container.texture || (container.texture = children[0].texture);
+          const state = this.state;
+          buffer.update(children, container._childrenDirty);
+          container._childrenDirty = false;
+          state.blendMode = getAdjustedBlendModeBlend(container.blendMode, container.texture._source);
+          const uniforms = this.localUniforms.uniforms;
+          const transformationMatrix = uniforms.uTranslationMatrix;
+          container.worldTransform.copyTo(transformationMatrix);
+          transformationMatrix.prepend(renderer.globalUniforms.globalUniformData.projectionMatrix);
+          uniforms.uResolution = renderer.globalUniforms.globalUniformData.resolution;
+          uniforms.uRound = renderer._roundPixels | container._roundPixels;
+          color32BitToUniform(
+            container.groupColorAlpha,
+            uniforms.uColor,
+            0
+          );
+          this.adaptor.execute(this, container);
+        }
+        destroy() {
+          if (this.defaultShader) {
+            this.defaultShader.destroy();
+            this.defaultShader = null;
+          }
+        }
+      };
+    }
+  });
+
+  // node_modules/pixi-v8/lib/scene/particle-container/shared/GlParticleContainerPipe.mjs
+  var GlParticleContainerPipe;
+  var init_GlParticleContainerPipe = __esm({
+    "node_modules/pixi-v8/lib/scene/particle-container/shared/GlParticleContainerPipe.mjs"() {
+      init_Extensions();
+      init_GlParticleContainerAdaptor();
+      init_ParticleContainerPipe();
+      GlParticleContainerPipe = class extends ParticleContainerPipe {
+        constructor(renderer) {
+          super(renderer, new GlParticleContainerAdaptor());
+        }
+      };
+      GlParticleContainerPipe.extension = {
+        type: [
+          ExtensionType2.WebGLPipes
+        ],
+        name: "particle"
+      };
+    }
+  });
+
+  // node_modules/pixi-v8/lib/scene/particle-container/gpu/GpuParticleContainerAdaptor.mjs
+  var GpuParticleContainerAdaptor;
+  var init_GpuParticleContainerAdaptor = __esm({
+    "node_modules/pixi-v8/lib/scene/particle-container/gpu/GpuParticleContainerAdaptor.mjs"() {
+      "use strict";
+      GpuParticleContainerAdaptor = class {
+        execute(particleContainerPop, container) {
+          const renderer = particleContainerPop.renderer;
+          const shader = container.shader || particleContainerPop.defaultShader;
+          shader.groups[0] = renderer.renderPipes.uniformBatch.getUniformBindGroup(particleContainerPop.localUniforms, true);
+          shader.groups[1] = renderer.texture.getTextureBindGroup(container.texture);
+          const state = particleContainerPop.state;
+          const buffer = particleContainerPop.getBuffers(container);
+          renderer.encoder.draw({
+            geometry: buffer.geometry,
+            shader: container.shader || particleContainerPop.defaultShader,
+            state,
+            size: container.particleChildren.length * 6
+          });
+        }
+      };
+    }
+  });
+
+  // node_modules/pixi-v8/lib/scene/particle-container/shared/GpuParticleContainerPipe.mjs
+  var GpuParticleContainerPipe;
+  var init_GpuParticleContainerPipe = __esm({
+    "node_modules/pixi-v8/lib/scene/particle-container/shared/GpuParticleContainerPipe.mjs"() {
+      init_Extensions();
+      init_GpuParticleContainerAdaptor();
+      init_ParticleContainerPipe();
+      GpuParticleContainerPipe = class extends ParticleContainerPipe {
+        constructor(renderer) {
+          super(renderer, new GpuParticleContainerAdaptor());
+        }
+      };
+      GpuParticleContainerPipe.extension = {
+        type: [
+          ExtensionType2.WebGPUPipes
+        ],
+        name: "particle"
+      };
+    }
+  });
+
+  // node_modules/pixi-v8/lib/scene/particle-container/init.mjs
+  var init_init8 = __esm({
+    "node_modules/pixi-v8/lib/scene/particle-container/init.mjs"() {
+      init_Extensions();
+      init_GlParticleContainerPipe();
+      init_GpuParticleContainerPipe();
+      extensions3.add(GlParticleContainerPipe);
+      extensions3.add(GpuParticleContainerPipe);
     }
   });
 
@@ -37945,7 +38422,7 @@ ${parts.join("\n")}
   });
 
   // node_modules/pixi-v8/lib/scene/text/init.mjs
-  var init_init8 = __esm({
+  var init_init9 = __esm({
     "node_modules/pixi-v8/lib/scene/text/init.mjs"() {
       init_Extensions();
       init_CanvasTextPipe();
@@ -39049,7 +39526,6 @@ ${parts.join("\n")}
           const cacheKey = `${name}-bitmap`;
           const font = Cache2.get(cacheKey);
           if (font) {
-            Cache2.remove(cacheKey);
             font.destroy();
           }
         }
@@ -39210,7 +39686,7 @@ ${parts.join("\n")}
   });
 
   // node_modules/pixi-v8/lib/scene/text-bitmap/init.mjs
-  var init_init9 = __esm({
+  var init_init10 = __esm({
     "node_modules/pixi-v8/lib/scene/text-bitmap/init.mjs"() {
       init_Extensions();
       init_BitmapTextPipe();
@@ -39891,7 +40367,7 @@ ${parts.join("\n")}
   });
 
   // node_modules/pixi-v8/lib/scene/text-html/init.mjs
-  var init_init10 = __esm({
+  var init_init11 = __esm({
     "node_modules/pixi-v8/lib/scene/text-html/init.mjs"() {
       init_Extensions();
       init_HTMLTextPipe();
@@ -40487,7 +40963,7 @@ ${parts.join("\n")}
   });
 
   // node_modules/pixi-v8/lib/scene/sprite-tiling/init.mjs
-  var init_init11 = __esm({
+  var init_init12 = __esm({
     "node_modules/pixi-v8/lib/scene/sprite-tiling/init.mjs"() {
       init_Extensions();
       init_TilingSpritePipe();
@@ -40725,7 +41201,7 @@ ${parts.join("\n")}
   });
 
   // node_modules/pixi-v8/lib/scene/sprite-nine-slice/init.mjs
-  var init_init12 = __esm({
+  var init_init13 = __esm({
     "node_modules/pixi-v8/lib/scene/sprite-nine-slice/init.mjs"() {
       init_Extensions();
       init_NineSliceSpritePipe();
@@ -41207,7 +41683,7 @@ ${parts.join("\n")}
   });
 
   // node_modules/pixi-v8/lib/filters/init.mjs
-  var init_init13 = __esm({
+  var init_init14 = __esm({
     "node_modules/pixi-v8/lib/filters/init.mjs"() {
       init_Extensions();
       init_FilterPipe();
@@ -41234,6 +41710,7 @@ ${parts.join("\n")}
       init_init11();
       init_init12();
       init_init13();
+      init_init14();
     }
   });
 
@@ -41271,6 +41748,7 @@ ${parts.join("\n")}
       init_init11();
       init_init12();
       init_init13();
+      init_init14();
     }
   });
 
@@ -42691,18 +43169,18 @@ ${parts.join("\n")}
   });
 
   // node_modules/pixi-v8/lib/filters/mask/mask.frag.mjs
-  var fragment9;
+  var fragment10;
   var init_mask_frag = __esm({
     "node_modules/pixi-v8/lib/filters/mask/mask.frag.mjs"() {
-      fragment9 = "in vec2 vMaskCoord;\nin vec2 vTextureCoord;\n\nuniform sampler2D uTexture;\nuniform sampler2D uMaskTexture;\n\nuniform float uAlpha;\nuniform vec4 uMaskClamp;\n\nout vec4 finalColor;\n\nvoid main(void)\n{\n    float clip = step(3.5,\n        step(uMaskClamp.x, vMaskCoord.x) +\n        step(uMaskClamp.y, vMaskCoord.y) +\n        step(vMaskCoord.x, uMaskClamp.z) +\n        step(vMaskCoord.y, uMaskClamp.w));\n\n    // TODO look into why this is needed\n    float npmAlpha = uAlpha; \n    vec4 original = texture(uTexture, vTextureCoord);\n    vec4 masky = texture(uMaskTexture, vMaskCoord);\n    float alphaMul = 1.0 - npmAlpha * (1.0 - masky.a);\n\n    original *= (alphaMul * masky.r * uAlpha * clip);\n\n    finalColor = original;\n}\n";
+      fragment10 = "in vec2 vMaskCoord;\nin vec2 vTextureCoord;\n\nuniform sampler2D uTexture;\nuniform sampler2D uMaskTexture;\n\nuniform float uAlpha;\nuniform vec4 uMaskClamp;\n\nout vec4 finalColor;\n\nvoid main(void)\n{\n    float clip = step(3.5,\n        step(uMaskClamp.x, vMaskCoord.x) +\n        step(uMaskClamp.y, vMaskCoord.y) +\n        step(vMaskCoord.x, uMaskClamp.z) +\n        step(vMaskCoord.y, uMaskClamp.w));\n\n    // TODO look into why this is needed\n    float npmAlpha = uAlpha; \n    vec4 original = texture(uTexture, vTextureCoord);\n    vec4 masky = texture(uMaskTexture, vMaskCoord);\n    float alphaMul = 1.0 - npmAlpha * (1.0 - masky.a);\n\n    original *= (alphaMul * masky.r * uAlpha * clip);\n\n    finalColor = original;\n}\n";
     }
   });
 
   // node_modules/pixi-v8/lib/filters/mask/mask.vert.mjs
-  var vertex6;
+  var vertex7;
   var init_mask_vert = __esm({
     "node_modules/pixi-v8/lib/filters/mask/mask.vert.mjs"() {
-      vertex6 = "in vec2 aPosition;\n\nout vec2 vTextureCoord;\nout vec2 vMaskCoord;\n\n\nuniform vec4 uInputSize;\nuniform vec4 uOutputFrame;\nuniform vec4 uOutputTexture;\nuniform mat3 uFilterMatrix;\n\nvec4 filterVertexPosition(  vec2 aPosition )\n{\n    vec2 position = aPosition * uOutputFrame.zw + uOutputFrame.xy;\n       \n    position.x = position.x * (2.0 / uOutputTexture.x) - 1.0;\n    position.y = position.y * (2.0*uOutputTexture.z / uOutputTexture.y) - uOutputTexture.z;\n\n    return vec4(position, 0.0, 1.0);\n}\n\nvec2 filterTextureCoord(  vec2 aPosition )\n{\n    return aPosition * (uOutputFrame.zw * uInputSize.zw);\n}\n\nvec2 getFilterCoord( vec2 aPosition )\n{\n    return  ( uFilterMatrix * vec3( filterTextureCoord(aPosition), 1.0)  ).xy;\n}   \n\nvoid main(void)\n{\n    gl_Position = filterVertexPosition(aPosition);\n    vTextureCoord = filterTextureCoord(aPosition);\n    vMaskCoord = getFilterCoord(aPosition);\n}\n";
+      vertex7 = "in vec2 aPosition;\n\nout vec2 vTextureCoord;\nout vec2 vMaskCoord;\n\n\nuniform vec4 uInputSize;\nuniform vec4 uOutputFrame;\nuniform vec4 uOutputTexture;\nuniform mat3 uFilterMatrix;\n\nvec4 filterVertexPosition(  vec2 aPosition )\n{\n    vec2 position = aPosition * uOutputFrame.zw + uOutputFrame.xy;\n       \n    position.x = position.x * (2.0 / uOutputTexture.x) - 1.0;\n    position.y = position.y * (2.0*uOutputTexture.z / uOutputTexture.y) - uOutputTexture.z;\n\n    return vec4(position, 0.0, 1.0);\n}\n\nvec2 filterTextureCoord(  vec2 aPosition )\n{\n    return aPosition * (uOutputFrame.zw * uInputSize.zw);\n}\n\nvec2 getFilterCoord( vec2 aPosition )\n{\n    return  ( uFilterMatrix * vec3( filterTextureCoord(aPosition), 1.0)  ).xy;\n}   \n\nvoid main(void)\n{\n    gl_Position = filterVertexPosition(aPosition);\n    vTextureCoord = filterTextureCoord(aPosition);\n    vMaskCoord = getFilterCoord(aPosition);\n}\n";
     }
   });
 
@@ -42747,8 +43225,8 @@ ${parts.join("\n")}
             }
           });
           const glProgram3 = GlProgram.from({
-            vertex: vertex6,
-            fragment: fragment9,
+            vertex: vertex7,
+            fragment: fragment10,
             name: "mask-filter"
           });
           super({
@@ -43597,6 +44075,9 @@ ${parts.join("\n")}
         }
         get bindGroup() {
           return this._currentGlobalUniformData.bindGroup;
+        }
+        get globalUniformData() {
+          return this._currentGlobalUniformData;
         }
         get uniformGroup() {
           return this._currentGlobalUniformData.bindGroup.resources[0];
@@ -52221,6 +52702,367 @@ ${e2}`);
     }
   });
 
+  // node_modules/pixi-v8/lib/scene/particle-container/shared/Particle.mjs
+  var _Particle, Particle;
+  var init_Particle = __esm({
+    "node_modules/pixi-v8/lib/scene/particle-container/shared/Particle.mjs"() {
+      init_Color2();
+      init_Texture2();
+      init_assignWithIgnore();
+      _Particle = class _Particle2 {
+        constructor(options) {
+          if (options instanceof Texture2) {
+            this.texture = options;
+            assignWithIgnore(this, _Particle2.defaultOptions, {});
+          } else {
+            const combined = { ..._Particle2.defaultOptions, ...options };
+            assignWithIgnore(this, combined, {});
+          }
+        }
+        get alpha() {
+          return this._alpha;
+        }
+        set alpha(value) {
+          this._alpha = Math.min(Math.max(value, 0), 1);
+          this._updateColor();
+        }
+        get tint() {
+          const bgr = this._tint;
+          return ((bgr & 255) << 16) + (bgr & 65280) + (bgr >> 16 & 255);
+        }
+        set tint(value) {
+          if (typeof value === "number") {
+            this._tint = value;
+          } else {
+            this._tint = Color2.shared.setValue(value).toBgrNumber();
+          }
+          this._updateColor();
+        }
+        _updateColor() {
+          this.color = this._tint + ((this._alpha * 255 | 0) << 24);
+        }
+      };
+      _Particle.defaultOptions = {
+        anchorX: 0,
+        anchorY: 0,
+        x: 0,
+        y: 0,
+        scaleX: 1,
+        scaleY: 1,
+        rotation: 0,
+        tint: 16777215,
+        alpha: 1
+      };
+      Particle = _Particle;
+    }
+  });
+
+  // node_modules/pixi-v8/lib/scene/particle-container/shared/particleData.mjs
+  var particleData;
+  var init_particleData = __esm({
+    "node_modules/pixi-v8/lib/scene/particle-container/shared/particleData.mjs"() {
+      "use strict";
+      particleData = {
+        vertex: {
+          attributeName: "aVertex",
+          format: "float32x2",
+          code: `
+            const texture = p.texture;
+            const sx = p.scaleX;
+            const sy = p.scaleY;
+            const ax = p.anchorX;
+            const ay = p.anchorY;
+            const trim = texture.trim;
+            const orig = texture.orig;
+
+            if (trim)
+            {
+                w1 = trim.x - (ax * orig.width);
+                w0 = w1 + trim.width;
+
+                h1 = trim.y - (ay * orig.height);
+                h0 = h1 + trim.height;
+            }
+            else
+            {
+                w1 = -ax * (orig.width);
+                w0 = w1 + orig.width;
+
+                h1 = -ay * (orig.height);
+                h0 = h1 + orig.height;
+            }
+
+            f32v[offset] = w1 * sx;
+            f32v[offset + 1] = h1 * sy;
+
+            f32v[offset + stride] = w0 * sx;
+            f32v[offset + stride + 1] = h1 * sy;
+
+            f32v[offset + (stride * 2)] = w0 * sx;
+            f32v[offset + (stride * 2) + 1] = h0 * sy;
+
+            f32v[offset + (stride * 3)] = w1 * sx;
+            f32v[offset + (stride * 3) + 1] = h0 * sy;
+        `,
+          dynamic: false
+        },
+        position: {
+          attributeName: "aPosition",
+          format: "float32x2",
+          code: `
+            var x = p.x;
+            var y = p.y;
+
+            f32v[offset] = x;
+            f32v[offset + 1] = y;
+
+            f32v[offset + stride] = x;
+            f32v[offset + stride + 1] = y;
+
+            f32v[offset + (stride * 2)] = x;
+            f32v[offset + (stride * 2) + 1] = y;
+
+            f32v[offset + (stride * 3)] = x;
+            f32v[offset + (stride * 3) + 1] = y;
+        `,
+          dynamic: true
+        },
+        rotation: {
+          attributeName: "aRotation",
+          format: "float32",
+          code: `
+            var rotation = p.rotation;
+
+            f32v[offset] = rotation;
+            f32v[offset + stride] = rotation;
+            f32v[offset + (stride * 2)] = rotation;
+            f32v[offset + (stride * 3)] = rotation;
+        `,
+          dynamic: false
+        },
+        uvs: {
+          attributeName: "aUV",
+          format: "float32x2",
+          code: `
+            var uvs = p.texture.uvs;
+
+            f32v[offset] = uvs.x0;
+            f32v[offset + 1] = uvs.y0;
+
+            f32v[offset + stride] = uvs.x1;
+            f32v[offset + stride + 1] = uvs.y1;
+
+            f32v[offset + (stride * 2)] = uvs.x2;
+            f32v[offset + (stride * 2) + 1] = uvs.y2;
+
+            f32v[offset + (stride * 3)] = uvs.x3;
+            f32v[offset + (stride * 3) + 1] = uvs.y3;
+        `,
+          dynamic: false
+        },
+        color: {
+          attributeName: "aColor",
+          format: "unorm8x4",
+          code: `
+            const c = p.color;
+
+            u32v[offset] = c;
+            u32v[offset + stride] = c;
+            u32v[offset + (stride * 2)] = c;
+            u32v[offset + (stride * 3)] = c;
+        `,
+          dynamic: false
+        }
+      };
+    }
+  });
+
+  // node_modules/pixi-v8/lib/scene/particle-container/shared/ParticleContainer.mjs
+  var emptyBounds, _ParticleContainer, ParticleContainer2;
+  var init_ParticleContainer2 = __esm({
+    "node_modules/pixi-v8/lib/scene/particle-container/shared/ParticleContainer.mjs"() {
+      init_warn();
+      init_View();
+      init_particleData();
+      emptyBounds = {
+        minX: 0,
+        minY: 0,
+        maxX: 0,
+        maxY: 0
+      };
+      _ParticleContainer = class _ParticleContainer2 extends ViewContainer {
+        constructor(options = {}) {
+          options = {
+            ..._ParticleContainer2.defaultOptions,
+            ...options,
+            dynamicProperties: {
+              ..._ParticleContainer2.defaultOptions.dynamicProperties,
+              ...options?.dynamicProperties
+            }
+          };
+          const { dynamicProperties, shader, roundPixels, texture, particles, ...rest } = options;
+          super({
+            label: "ParticleContainer",
+            ...rest
+          });
+          this.renderPipeId = "particle";
+          this.batched = false;
+          this._childrenDirty = false;
+          this.texture = texture || null;
+          this.shader = shader;
+          this._properties = {};
+          for (const key in particleData) {
+            const property = particleData[key];
+            const dynamic = dynamicProperties[key];
+            this._properties[key] = {
+              ...property,
+              dynamic
+            };
+          }
+          this.allowChildren = true;
+          this.roundPixels = roundPixels ?? false;
+          this.particleChildren = particles ?? [];
+        }
+        addParticle(...children) {
+          for (let i2 = 0; i2 < children.length; i2++) {
+            this.particleChildren.push(children[i2]);
+          }
+          this.onViewUpdate();
+          return children[0];
+        }
+        removeParticle(...children) {
+          let didRemove = false;
+          for (let i2 = 0; i2 < children.length; i2++) {
+            const index = this.particleChildren.indexOf(children[i2]);
+            if (index > -1) {
+              this.particleChildren.splice(index, 1);
+              didRemove = true;
+            }
+          }
+          if (didRemove)
+            this.onViewUpdate();
+          return children[0];
+        }
+        update() {
+          this._childrenDirty = true;
+        }
+        onViewUpdate() {
+          this._didViewChangeTick++;
+          this._childrenDirty = true;
+          this._boundsDirty = true;
+          if (this.didViewUpdate)
+            return;
+          this.didViewUpdate = true;
+          const renderGroup = this.renderGroup || this.parentRenderGroup;
+          if (renderGroup) {
+            renderGroup.onChildViewUpdate(this);
+          }
+        }
+        get bounds() {
+          warn(
+            "ParticleContainer does not calculated bounds as it would slow things down, its up to you to set this via the boundsArea property"
+          );
+          return emptyBounds;
+        }
+        addBounds(_bounds) {
+          warn(
+            "ParticleContainer does not calculated bounds as it would slow things down, its up to you to set this via the boundsArea property"
+          );
+        }
+        destroy(options = false) {
+          super.destroy(options);
+          const destroyTexture = typeof options === "boolean" ? options : options?.texture;
+          if (destroyTexture) {
+            const destroyTextureSource = typeof options === "boolean" ? options : options?.textureSource;
+            const texture = this.texture ?? this.particleChildren[0]?.texture;
+            if (texture) {
+              texture.destroy(destroyTextureSource);
+            }
+          }
+          this.texture = null;
+          this.shader?.destroy();
+        }
+        removeParticles(beginIndex, endIndex) {
+          const children = this.particleChildren.splice(beginIndex, endIndex);
+          this.onViewUpdate();
+          return children;
+        }
+        removeParticleAt(index) {
+          const child = this.particleChildren.splice(index, 1);
+          this.onViewUpdate();
+          return child[0];
+        }
+        addParticleAt(child, index) {
+          this.particleChildren.splice(index, 0, child);
+          this.onViewUpdate();
+          return child;
+        }
+        addChild(..._children) {
+          throw new Error(
+            "ParticleContainer.addChild() is not available. Please use ParticleContainer.addParticle()"
+          );
+        }
+        removeChild(..._children) {
+          throw new Error(
+            "ParticleContainer.removeChild() is not available. Please use ParticleContainer.removeParticle()"
+          );
+        }
+        removeChildren(_beginIndex, _endIndex) {
+          throw new Error(
+            "ParticleContainer.removeChildren() is not available. Please use ParticleContainer.removeParticles()"
+          );
+        }
+        removeChildAt(_index) {
+          throw new Error(
+            "ParticleContainer.removeChildAt() is not available. Please use ParticleContainer.removeParticleAt()"
+          );
+        }
+        getChildAt(_index) {
+          throw new Error(
+            "ParticleContainer.getChildAt() is not available. Please use ParticleContainer.getParticleAt()"
+          );
+        }
+        setChildIndex(_child, _index) {
+          throw new Error(
+            "ParticleContainer.setChildIndex() is not available. Please use ParticleContainer.setParticleIndex()"
+          );
+        }
+        getChildIndex(_child) {
+          throw new Error(
+            "ParticleContainer.getChildIndex() is not available. Please use ParticleContainer.getParticleIndex()"
+          );
+        }
+        addChildAt(_child, _index) {
+          throw new Error(
+            "ParticleContainer.addChildAt() is not available. Please use ParticleContainer.addParticleAt()"
+          );
+        }
+        swapChildren(_child, _child2) {
+          throw new Error(
+            "ParticleContainer.swapChildren() is not available. Please use ParticleContainer.swapParticles()"
+          );
+        }
+        reparentChild(..._child) {
+          throw new Error("ParticleContainer.reparentChild() is not available with the particle container");
+        }
+        reparentChildAt(_child, _index) {
+          throw new Error("ParticleContainer.reparentChildAt() is not available with the particle container");
+        }
+      };
+      _ParticleContainer.defaultOptions = {
+        dynamicProperties: {
+          vertex: false,
+          position: true,
+          rotation: false,
+          uvs: false,
+          color: false
+        },
+        roundPixels: false
+      };
+      ParticleContainer2 = _ParticleContainer;
+    }
+  });
+
   // node_modules/pixi-v8/lib/index.mjs
   var import_earcut3;
   var init_lib39 = __esm({
@@ -52237,10 +53079,125 @@ ${e2}`);
       init_TextureStyle();
       init_textureFrom();
       init_Container2();
+      init_Particle();
+      init_ParticleContainer2();
       init_Sprite2();
       init_eventemitter3();
       import_earcut3 = __toESM(require_earcut(), 1);
       extensions3.add(browserExt, webworkerExt);
+    }
+  });
+
+  // src/bunny-mark/v8/Bunny-particle-v8.ts
+  var BunnyParticleV8;
+  var init_Bunny_particle_v8 = __esm({
+    "src/bunny-mark/v8/Bunny-particle-v8.ts"() {
+      init_lib39();
+      BunnyParticleV8 = class {
+        constructor(texture, bounds) {
+          this.gravity = 0.75;
+          this.speedX = Math.random() * 10;
+          this.speedY = Math.random() * 10 - 5;
+          this.positionX = 0;
+          this.positionY = 0;
+          this.view = new Particle({
+            texture,
+            anchorX: 0.5,
+            anchorY: 1
+          });
+          this.bounds = bounds;
+        }
+        update() {
+          let pX = this.positionX;
+          let pY = this.positionY;
+          pX += this.speedX;
+          pY += this.speedY;
+          this.speedY += this.gravity;
+          if (pX > this.bounds.right) {
+            this.speedX *= -1;
+            pX = this.bounds.right;
+          } else if (pX < this.bounds.left) {
+            this.speedX *= -1;
+            pX = this.bounds.left;
+          }
+          if (pY > this.bounds.bottom) {
+            this.speedY *= -0.85;
+            pY = this.bounds.bottom;
+            if (Math.random() > 0.5) {
+              this.speedY -= Math.random() * 6;
+            }
+          } else if (pY < this.bounds.top) {
+            this.speedY = 0;
+            pY = this.bounds.top;
+          }
+          this.view.x = this.positionX = pX;
+          this.view.y = this.positionY = pY;
+        }
+        reset() {
+          this.positionX = 0;
+          this.positionY = 0;
+        }
+      };
+    }
+  });
+
+  // src/bunny-mark/v8/bunny-mark-particle-v8.ts
+  var bunny_mark_particle_v8_exports = {};
+  __export(bunny_mark_particle_v8_exports, {
+    bunnyMarkParticlesV8: () => bunnyMarkParticlesV8
+  });
+  async function bunnyMarkParticlesV8({ totalBunnies, preference }) {
+    const renderer = await autoDetectRenderer2({
+      preference,
+      clearBeforeRender: true,
+      backgroundAlpha: 1,
+      backgroundColor: 16777215,
+      width: 800,
+      height: 600,
+      resolution: 1,
+      antialias: false,
+      hello: true
+    });
+    document.body.appendChild(renderer.view.canvas);
+    const stage = new ParticleContainer2();
+    const textures = Object.values((await Assets2.load(
+      "./assets/bunny-sprite.webp.json"
+    )).textures);
+    const bounds = new Rectangle2(0, 0, 800, 600);
+    const bunnies = [];
+    function addBunny() {
+      const bunny = bunnyPool.pop() || new BunnyParticleV8(textures[bunnies.length % textures.length], bounds);
+      bunny.reset();
+      stage.addParticle(bunny.view);
+      bunnies.push(bunny);
+    }
+    for (let i2 = 0; i2 < totalBunnies; i2++) {
+      addBunny();
+    }
+    let pause = false;
+    renderer.view.canvas.addEventListener("mousedown", () => {
+      pause = !pause;
+    });
+    function renderUpdate() {
+      if (!pause) {
+        for (let i2 = 0; i2 < bunnies.length; i2++) {
+          bunnies[i2].update();
+        }
+      }
+      renderer.render(stage);
+      requestAnimationFrame(renderUpdate);
+    }
+    renderUpdate();
+  }
+  var bunnyPool;
+  var init_bunny_mark_particle_v8 = __esm({
+    "src/bunny-mark/v8/bunny-mark-particle-v8.ts"() {
+      init_lib39();
+      init_Bunny_particle_v8();
+      TextureStyle.defaultOptions.scaleMode = "nearest";
+      EventSystem2.defaultEventFeatures.move = false;
+      EventSystem2.defaultEventFeatures.globalMove = false;
+      bunnyPool = [];
     }
   });
 
@@ -52330,7 +53287,7 @@ ${e2}`);
     const bounds = new Rectangle2(0, 0, 800, 600);
     const bunnies = [];
     function addBunny() {
-      const bunny = bunnyPool.pop() || new BunnyV8(textures[bunnies.length % textures.length], bounds);
+      const bunny = bunnyPool2.pop() || new BunnyV8(textures[bunnies.length % textures.length], bounds);
       bunny.reset();
       stage.addChild(bunny.view);
       bunnies.push(bunny);
@@ -52353,7 +53310,7 @@ ${e2}`);
     }
     renderUpdate();
   }
-  var bunnyPool;
+  var bunnyPool2;
   var init_bunny_mark_v8 = __esm({
     "src/bunny-mark/v8/bunny-mark-v8.ts"() {
       init_lib39();
@@ -52361,7 +53318,7 @@ ${e2}`);
       TextureStyle.defaultOptions.scaleMode = "nearest";
       EventSystem2.defaultEventFeatures.move = false;
       EventSystem2.defaultEventFeatures.globalMove = false;
-      bunnyPool = [];
+      bunnyPool2 = [];
     }
   });
 
@@ -52369,11 +53326,15 @@ ${e2}`);
   async function init3() {
     const params = new URLSearchParams(window.location.search);
     const version = params.get("version") || "v8";
+    const useParticles = params.get("asParticles") || false;
     const totalBunnies = parseInt(params.get("count")) || 1e5;
     const preference = params.get("renderer") || "webgpu";
     if (version === "v7") {
       const { bunnyMarkV7: bunnyMarkV72 } = await Promise.resolve().then(() => (init_bunny_mark_v7(), bunny_mark_v7_exports));
       bunnyMarkV72({ totalBunnies });
+    } else if (useParticles) {
+      const { bunnyMarkParticlesV8: bunnyMarkParticlesV82 } = await Promise.resolve().then(() => (init_bunny_mark_particle_v8(), bunny_mark_particle_v8_exports));
+      bunnyMarkParticlesV82({ totalBunnies, preference });
     } else {
       const { bunnyMarkV8: bunnyMarkV82 } = await Promise.resolve().then(() => (init_bunny_mark_v8(), bunny_mark_v8_exports));
       bunnyMarkV82({ totalBunnies, preference });
