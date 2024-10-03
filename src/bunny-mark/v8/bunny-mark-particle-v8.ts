@@ -1,7 +1,7 @@
 
-import { Assets, ParticleContainer, BigPool, Container, EventSystem, Rectangle, Spritesheet, TextureStyle, autoDetectRenderer } from 'pixi-v8';
+import { Assets, ParticleContainer, EventSystem, Rectangle, Spritesheet, TextureStyle, autoDetectRenderer } from 'pixi-v8';
 import { BunnyParticleV8 } from './Bunny-particle-v8';
-import { Pane } from 'tweakpane';
+
 
 
 TextureStyle.defaultOptions.scaleMode = 'nearest'
@@ -25,6 +25,26 @@ export async function bunnyMarkParticlesV8({ totalBunnies, preference }: { total
     })
 
     document.body.appendChild(renderer.view.canvas as HTMLCanvasElement)
+
+    const domElement = document.createElement('div');
+    domElement.style.cssText = `
+        background: #ccc;
+        width: 74px;
+        position: absolute;
+        background-color: #105CB6;
+        padding: 3px;
+        top: 50px;
+        color: #0ff;
+        font-family: Helvetica, Arial;
+        font-size: 9px;
+        font-weight: bold;
+    `;
+
+
+    domElement.innerHTML = '0'
+
+    document.body.appendChild(domElement)
+
 
     const stage = new ParticleContainer();
 
@@ -50,22 +70,34 @@ export async function bunnyMarkParticlesV8({ totalBunnies, preference }: { total
         addBunny();
     }
 
-    let pause = false;
+    let isDown = false;
 
     renderer.view.canvas.addEventListener('mousedown', () => {
-        pause = !pause
+        //pause = !pause
+        isDown = true;
+    })
+
+    renderer.view.canvas.addEventListener('mouseup', () => {
+        isDown = false;
     })
 
 
+    domElement.innerHTML = `${bunnies.length}`
+
     function renderUpdate() {
 
-        if (!pause) {
-            for (let i = 0; i < bunnies.length; i++) {
-                bunnies[i].update();
+        if (isDown) {
+
+            for (var i = 0; i < 100; i++) {
+                addBunny();
             }
+
+            domElement.innerHTML = `${bunnies.length}`
         }
 
-        // bunnies[0].view.visible = !bunnies[0].view.visible;
+        for (let i = 0; i < bunnies.length; i++) {
+            bunnies[i].update();
+        }
 
         renderer.render(stage);
         requestAnimationFrame(renderUpdate)

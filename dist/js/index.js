@@ -33938,7 +33938,7 @@ ${parts.join("\n")}
         update(particles, uploadStatic) {
           if (particles.length > this._size) {
             uploadStatic = true;
-            this._size = Math.max(particles.length, this._size * 1.5);
+            this._size = Math.max(particles.length, this._size * 1.5 | 0);
             this.staticAttributeBuffer = new ViewableBuffer2(this._size * this._staticStride * 4 * 4);
             this.dynamicAttributeBuffer = new ViewableBuffer2(this._size * this._dynamicStride * 4 * 4);
             this.indexBuffer = createIndicesForQuads2(this._size);
@@ -53095,7 +53095,7 @@ ${e2}`);
       init_lib39();
       BunnyParticleV8 = class {
         constructor(texture, bounds) {
-          this.gravity = 0.75;
+          this.gravity = 0.2;
           this.speedX = Math.random() * 10;
           this.speedY = Math.random() * 10 - 5;
           this.positionX = 0;
@@ -53159,6 +53159,21 @@ ${e2}`);
       hello: true
     });
     document.body.appendChild(renderer.view.canvas);
+    const domElement = document.createElement("div");
+    domElement.style.cssText = `
+        background: #ccc;
+        width: 74px;
+        position: absolute;
+        background-color: #105CB6;
+        padding: 3px;
+        top: 50px;
+        color: #0ff;
+        font-family: Helvetica, Arial;
+        font-size: 9px;
+        font-weight: bold;
+    `;
+    domElement.innerHTML = "0";
+    document.body.appendChild(domElement);
     const stage = new ParticleContainer2();
     const textures = Object.values((await Assets2.load(
       "./assets/bunny-sprite.webp.json"
@@ -53174,15 +53189,23 @@ ${e2}`);
     for (let i2 = 0; i2 < totalBunnies; i2++) {
       addBunny();
     }
-    let pause = false;
+    let isDown = false;
     renderer.view.canvas.addEventListener("mousedown", () => {
-      pause = !pause;
+      isDown = true;
     });
+    renderer.view.canvas.addEventListener("mouseup", () => {
+      isDown = false;
+    });
+    domElement.innerHTML = `${bunnies.length}`;
     function renderUpdate() {
-      if (!pause) {
-        for (let i2 = 0; i2 < bunnies.length; i2++) {
-          bunnies[i2].update();
+      if (isDown) {
+        for (var i2 = 0; i2 < 100; i2++) {
+          addBunny();
         }
+        domElement.innerHTML = `${bunnies.length}`;
+      }
+      for (let i3 = 0; i3 < bunnies.length; i3++) {
+        bunnies[i3].update();
       }
       renderer.render(stage);
       requestAnimationFrame(renderUpdate);

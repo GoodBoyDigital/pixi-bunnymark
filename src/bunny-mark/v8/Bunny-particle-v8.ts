@@ -6,7 +6,7 @@ export class BunnyParticleV8 {
 
     view: Particle;
 
-    gravity = 0.75
+    gravity = 0.2
 
     speedX = Math.random() * 10;
     speedY = (Math.random() * 10) - 5;
