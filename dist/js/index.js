@@ -53174,6 +53174,30 @@ ${e2}`);
     `;
     domElement.innerHTML = "0";
     document.body.appendChild(domElement);
+    const millionDomElement = document.createElement("div");
+    millionDomElement.style.cssText = `
+        background: #ccc;
+        width: 74px;
+        position: absolute;
+        background-color: #105CB6;
+        padding: 3px;
+        top: 70px;
+        color: #0ff;
+        font-family: Helvetica, Arial;
+        font-size: 9px;
+        font-weight: bold;
+        cursor: pointer;
+        user-select: none;
+    `;
+    document.body.appendChild(millionDomElement);
+    millionDomElement.innerHTML = "Make it a Million!";
+    millionDomElement.addEventListener("click", () => {
+      const newBunnies = 1e6 - bunnies.length;
+      for (let i2 = 0; i2 < newBunnies; i2++) {
+        addBunny();
+      }
+      domElement.innerHTML = `${bunnies.length}`;
+    });
     const stage = new ParticleContainer2();
     const textures = Object.values((await Assets2.load(
       "./assets/bunny-sprite.webp.json"
